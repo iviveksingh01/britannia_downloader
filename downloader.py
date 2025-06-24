@@ -3,7 +3,7 @@ import csv
 import os
 import requests
 import tempfile
-
+import shutil
 
 def save_img(url, path):
     try:
@@ -16,7 +16,6 @@ def save_img(url, path):
             return f"❌ Failed: {url} (Status {response.status_code})"
     except Exception as e:
         return f"⚠️ Error downloading {url}: {e}"
-
 
 def download_images(csv_path, keyword, folder_name):
     results = []
@@ -34,6 +33,10 @@ def download_images(csv_path, keyword, folder_name):
                 results.append(result)
     return results
 
+def zip_folder(folder_path, zip_filename):
+    shutil.make_archive(zip_filename, 'zip', folder_path)
+    return zip_filename + '.zip'
+
 
 st.title("🖼️ Britannia Image Downloader")
 
@@ -46,7 +49,6 @@ category = st.selectbox(" Select a category to download", [
 download_button = st.button("📥 Download Images")
 
 if uploaded_file and download_button:
-    
     with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
         tmp.write(uploaded_file.read())
         tmp_path = tmp.name
@@ -55,8 +57,18 @@ if uploaded_file and download_button:
     with st.spinner("Downloading..."):
         output = download_images(tmp_path, category, folder_name)
 
-    st.success("Download complete!")
+    st.success("✅ Download complete!")
     for msg in output:
         st.write(msg)
 
-    st.info(f"Images saved in: `{folder_name}/`")
+   
+    zip_path = zip_folder(folder_name, folder_name)
+    with open(zip_path, 'rb') as f:
+        st.download_button(
+            label="⬇️ Download All Images as ZIP",
+            data=f,
+            file_name=os.path.basename(zip_path),
+            mime='application/zip'
+        )
+
+    st.info(f"All images saved in: `{folder_name}/` (temporary storage)")
