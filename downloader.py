@@ -19,9 +19,12 @@ def save_img(url, path):
 
 def download_images(csv_path, keyword, folder_name):
     results = []
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
+
     
+    if os.path.exists(folder_name):
+        shutil.rmtree(folder_name)
+    os.makedirs(folder_name)
+
     with open(csv_path, 'r') as file:
         reader = csv.DictReader(file)
         for row in reader:
@@ -32,6 +35,7 @@ def download_images(csv_path, keyword, folder_name):
                 result = save_img(image_url, filepath)
                 results.append(result)
     return results
+
 
 def zip_folder(folder_path, zip_filename):
     shutil.make_archive(zip_filename, 'zip', folder_path)
